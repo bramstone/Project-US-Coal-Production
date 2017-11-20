@@ -143,7 +143,7 @@ with(na_by_state,
     ## png 
     ##   2
    
-<img src="https://github.com/bramstone/US-Coal-Production/missing_values.png" width=500>
+![](missing_values.png)
 
 It looks like `NA` values are more likely to occur from inactive and abandoned mines than those that are active, as expected, and there is some difference in the number of `NA` values per state. However, the amount of coal produced seems to have little bearing on the quality of the data. Removing these cases shouldn't bias our results against any highly productive or unproductive states.
 
