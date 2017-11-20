@@ -181,6 +181,8 @@ state_compare <- ggplot(by_state, aes(reorder(state, sort(value, decreasing=T)),
   xlab('') +
   labs(title='Employment by State in 2016') +
   theme_bw()
+  
+state_compare
 ```
 
 ![](https://github.com/bramstone/US-Coal-Production/state_comparison.png)
