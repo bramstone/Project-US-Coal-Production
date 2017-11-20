@@ -143,7 +143,7 @@ with(na_by_state,
     ## png 
     ##   2
 
-![](https://github.com/bramstone/US-Coal-Production/missing_values.png)
+![](missing_values.png)
 
 It looks like `NA` values are more likely to occur from inactive and abandoned mines than those that are active, as expected, and there is some difference in the number of `NA` values per state. However, the amount of coal produced seems to have little bearing on the quality of the data. Removing these cases shouldn't bias our results against any highly productive or unproductive states.
 
@@ -187,7 +187,7 @@ state_compare
 
 ![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
 
-![](https://github.com/bramstone/US-Coal-Production/state_comparison.png)
+![](state_comparison.png)
 
 Now that we can see who the top producing states are, let's look at a county-by-county comparison. In order to create a chloropleth map, where production and employment are quantified by color intensity, the data need to be related to a spatial database. Here, production and employment data is summarized by county, and merged with more county-based information from `chloroplethrMaps` that will allow the dataset to be mapped using `ggplot`. More specifically, data were joined on county *FIPS* (Federal Information Processing) codes. After joining, `NA` values were zeroed, redundante columns were removed, and county and state columns were renamed to `subregion` and `region`, respectively. This last part was to make data comply with `ggplot`'s expected column names.
 
@@ -273,7 +273,7 @@ employ_map
 
     ## Warning: Transformation introduced infinite values in discrete y-axis
 
-![](https://github.com/bramstone/US-Coal-Production/coal_employment_2016.png)
+![](coal_employment_2016.png)
 
 ``` r
 #for labeling
@@ -304,4 +304,4 @@ product_map
 
     ## Warning: Transformation introduced infinite values in discrete y-axis
 
-![](https://github.com/bramstone/US-Coal-Production/coal_production_2016.png)
+![](coal_production_2016.png)
