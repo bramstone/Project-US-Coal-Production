@@ -4,6 +4,4 @@ Visualization and mapping of trends in coal mining in the United States. Raw dat
 
 This project utilizes the `ggplot`, `data.table`, `maps`, and `chloroplethr` R packages.
 
-
-![](https://github.com/bramstone/Project-US-Coal-Production/blob/master/coal_employment_2016.png)
 ![](https://github.com/bramstone/Project-US-Coal-Production/blob/master/coal_production_2016.png)
