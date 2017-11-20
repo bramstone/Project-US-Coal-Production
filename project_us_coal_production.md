@@ -28,7 +28,7 @@ The following code creates a temporary file to store the compressed contents of 
 temp <- tempfile()
 
 #employment/production data
-download.file('https://arlweb.msha.gov/OpenGovernmentData/DataSets/ContractorProdQuarterly.zip', 
+download.file('https://arlweb.msha.gov/OpenGovernmentData/DataSets/MinesProdQuarterly.zip', 
               temp, mode='wb')
 coal <- read.table(unz(temp, 'MinesProdQuarterly.txt'), sep='|', header=T)
 
