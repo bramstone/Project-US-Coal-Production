@@ -138,7 +138,7 @@ with(na_by_state,
 )
 ```
 
-![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-1.png)
+![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
 
 ![](missing_values.png)
 
@@ -182,7 +182,7 @@ state_compare <- ggplot(by_state, aes(reorder(state, sort(value, decreasing=T)),
 state_compare
 ```
 
-![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
+![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-8-1.png)
 
 ![](state_comparison.png)
 
@@ -237,7 +237,7 @@ head(by_county)
 ``` r
 #create map data
 coal_map <- map_data('county')
-coal_map <- merge(coal_map, by_county, all.x=T)
+coal_map <- merge(coal_map, by_county, all.x=T, sort=F)
 coal_map <- coal_map[order(coal_map$order),]
 ```
 
@@ -266,7 +266,7 @@ employ_map <- ggplot(coal_map, aes(long, lat, group=group, fill=avg_employee_cnt
 employ_map
 ```
 
-![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
+![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
 
     ## Warning: Transformation introduced infinite values in discrete y-axis
 
@@ -297,15 +297,154 @@ product_map
 
     ## Warning: Transformation introduced infinite values in discrete y-axis
 
-![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-1.png)
+![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-1.png)
 
     ## Warning: Transformation introduced infinite values in discrete y-axis
 
 ![](coal_production_2016.png)
 
-Next, let's look at the change in coal production and employment across time (2000--2007) by state. For simplicity's sake, only the 10 most productive states are shown on the graph.
+Next, let's look at the change in coal production and employment across time (2000--2007) by state. For simplicity's sake, only the 10 most productive states are shown on the graph. The following code aggregates production and employment by quater and state. Because year and quarter are separate, numeric, columns, they are combined in the `aggregate` function using a mathematical expression in the formula notation (which is the purpose of the `I` function that wraps that particular expression).
+
+Looking at the output, there appears to be some difference between production and employment. While many states seem to be fairly steady in both categories since 2000, West Virginia and Kentucky, the two states with the most people employed in coal production, have seen a fairly significant drop off in employment since 2012 with production steadily dropping since 2000. Another obvious pattern is the dominance of Wyoming coal production as compared to it's mediocre employment numbers. Coal production in Wyoming is by far the highest and most variable of any state, but employs roughly the same number of workers as Pennslyvania. This means that less people in Wyoming are as directly dependent on coal production and perhaps less vulnerable to losses of these jobs. Interestingly, employment (and to a slightly lesser degree production) in West Virginia and Kentucky follow nearly identical patterns over time, rather than taking on different trajectories, suggesting that the same forces are acting on these across both states.
 
     ## png 
     ##   2
 
 ![](coal_by_time.png)
+
+#### Employment in coal in West Virginia and Kentucky
+
+To explore employment patterns further, we will look at mining operations at each state individually. The code below aggregates employment by `mine_id`, and joins the data to the `mines` dataset, choosing only **Kentucky** and **West Virginia**. Conveniently, both `longitude` and `latitude` are included in the `mines` dataset, which can be used to map coal employment. In order to map using `ggplot`, state and FIPS county code are changed to `region` and `subregion`, respectively. Longitude and latitude were erroneously encoded as factors when they were originally uploaded, so they are converted to numbers. Lastly, before plotting, `NA` values, some extreme outliers were removed. The plot below isn't perfect; there are still some points beyond the spatial extent of the states, but the spatial clustering of coal production can be seen clearly.
+
+``` r
+#Next to map is coal employment in West Virginia, and Kentucky by town.
+
+#Get mapmaking info
+wv_ky <- map_data('county', c('west virginia', 'kentucky'))
+wv_ky_state <- map_data('state', c('west virginia', 'kentucky'))
+head(wv_ky)
+```
+
+    ##        long      lat group order   region subregion
+    ## 1 -85.24466 36.92713     1     1 kentucky     adair
+    ## 2 -85.46812 36.94432     1     2 kentucky     adair
+    ## 3 -85.46812 36.94432     1     3 kentucky     adair
+    ## 4 -85.45666 36.97869     1     4 kentucky     adair
+    ## 5 -85.51395 37.01308     1     5 kentucky     adair
+    ## 6 -85.52541 37.02453     1     6 kentucky     adair
+
+``` r
+#get employment numbers for WV and KY mines in 2016, aggregate by mine_id
+coal_16_wv_ky <- coal_16[coal_16$state %in% c('WV', 'KY'),]
+coal_16_wv_ky <- aggregate(cbind(avg_employee_cnt, coal_production) ~ mine_id, data=coal_16_wv_ky, sum)
+
+#get geographic information for each mine from 'mines' info, has latitude and longitude
+mine_info <- merge(coal_16_wv_ky, mines, by='mine_id', all.x=T)
+mine_info <- mine_info[names(mine_info) %in% c('mine_id', 'avg_employee_cnt', 'coal_production',
+                                               'current_mine_type', 'state', 'fips_cnty_nm',
+                                               'longitude', 'latitude')]
+#change names to match with those expected for plotting
+names(mine_info)[names(mine_info) %in% c('state', 'fips_cnty_nm', 
+                                         'longitude', 'latitude')] <- c('region', 'subregion', 'long', 'lat')
+#convert latitude and longitude to numbers and invert longitude which is in decimal degrees West
+mine_info <- within(mine_info, {
+  long <- as.numeric(as.character(long)) * -1
+  lat <- as.numeric(as.character(lat))
+})
+head(mine_info)
+```
+
+    ##   mine_id avg_employee_cnt coal_production current_mine_type region
+    ## 1 1202416               72          193386           Surface     KY
+    ## 2 1502132             1492         3763705       Underground     KY
+    ## 3 1502263              401          431031       Underground     KY
+    ## 4 1503178              215               0          Facility     KY
+    ## 5 1503627               90          276378           Surface     KY
+    ## 6 1505215                0               0          Facility     KY
+    ##   subregion      long      lat
+    ## 1      Ohio -87.09750 37.35444
+    ## 2   Webster -87.77028 37.45250
+    ## 3    Harlan -83.01083 36.87472
+    ## 4     Union -87.94722 37.76000
+    ## 5     Perry -83.29667 37.33889
+    ## 6    Harlan -83.25833 36.81500
+
+``` r
+#find any NA values
+sapply(mine_info, function(x) which(is.na(x)))
+```
+
+    ## $mine_id
+    ## integer(0)
+    ## 
+    ## $avg_employee_cnt
+    ## integer(0)
+    ## 
+    ## $coal_production
+    ## integer(0)
+    ## 
+    ## $current_mine_type
+    ## integer(0)
+    ## 
+    ## $region
+    ## integer(0)
+    ## 
+    ## $subregion
+    ## integer(0)
+    ## 
+    ## $long
+    ## [1] 160 332
+    ## 
+    ## $lat
+    ## [1] 160 332
+
+``` r
+mine_info <- mine_info[!is.na(mine_info$long),]
+#find outlier values
+par(mfrow=c(1,2))
+long_outlier <- boxplot(mine_info$long)$out
+lat_outlier <- boxplot(mine_info$lat)$out
+```
+
+![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-1.png)
+
+``` r
+#return any data points that match the extreme outliers
+outliers <- which(mine_info$long==max(long_outlier) | mine_info$lat==max(lat_outlier))
+mine_info[outliers,]
+```
+
+    ##     mine_id avg_employee_cnt coal_production current_mine_type region
+    ## 351 4609474                0               0       Underground     WV
+    ##     subregion      long      lat
+    ## 351   Wyoming -37.54611 81.50528
+
+``` r
+mine_info <- mine_info[-outliers,]
+#add in group, a required column for adding to ggplot map
+mine_info$group <- rep(1L, nrow(mine_info))
+
+#plot
+wv_ky_map <- ggplot(wv_ky, aes(long, lat, group=group)) +
+  geom_polygon(aes(long, lat), color=gray(.6), fill=NA) +
+  coord_map('lambert', parameters=c(30,80)) +
+  theme_void() +
+    labs(color='Mine Type',
+         size='Employee Count',
+         title='Coal Operations in West Virginia and Kentucky',
+         subtitle='Employment in 2016',
+         caption=data_source) +
+  guides(color = guide_legend(override.aes = list(size=6))) +
+  theme(plot.title = element_text(size=rel(1.5)))
+
+wv_ky_map +
+  geom_polygon(data=wv_ky_state, aes(long, lat), color='black', fill=NA, size=.75) +
+  geom_point(data=mine_info, aes(long, lat, size=avg_employee_cnt, color=current_mine_type), alpha=.5)
+```
+
+![](project_us_coal_production_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-2.png)
+
+    ## png 
+    ##   2
+
+![](coal_employment_wv_ky.png)
